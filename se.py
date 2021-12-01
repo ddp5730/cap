@@ -1,5 +1,5 @@
-from keras.layers import GlobalAveragePooling2D, Reshape, Dense, multiply, Permute
 from keras import backend as K
+from keras.layers import GlobalAveragePooling2D, Reshape, Dense, multiply, Permute
 
 
 def squeeze_excite_block(input, ratio=16):

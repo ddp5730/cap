@@ -1,5 +1,6 @@
 import keras
 from keras import backend as K
+
 """
 This code is adapted from the original code in the GitHub repository
 https://github.com/CyberZHG/keras-self-attention
@@ -9,7 +10,7 @@ https://github.com/CyberZHG/keras-self-attention
 class SeqSelfAttention(keras.layers.Layer):
 
     def __init__(self,
-                 units=32,                 
+                 units=32,
                  return_attention=False,
                  kernel_initializer='glorot_normal',
                  bias_initializer='zeros',
@@ -46,10 +47,8 @@ class SeqSelfAttention(keras.layers.Layer):
         self.attention_activation = keras.activations.get(attention_activation)
         self._backend = keras.backend.backend()
 
-        
         self.Wx, self.Wt, self.bh = None, None, None
         self.Wa, self.ba = None, None
-       
 
     def get_config(self):
         config = {
@@ -67,8 +66,8 @@ class SeqSelfAttention(keras.layers.Layer):
         return dict(list(base_config.items()) + list(config.items()))
 
     def build(self, input_shape):
-       
-        self._build_attention(input_shape)       
+
+        self._build_attention(input_shape)
         super(SeqSelfAttention, self).build(input_shape)
 
     def _build_attention(self, input_shape):
@@ -84,7 +83,7 @@ class SeqSelfAttention(keras.layers.Layer):
                                   initializer=self.kernel_initializer,
                                   regularizer=self.kernel_regularizer,
                                   constraint=self.kernel_constraint)
-        
+
         self.bh = self.add_weight(shape=(self.units,),
                                   name='{}_Add_bh'.format(self.name),
                                   initializer=self.bias_initializer,
@@ -96,21 +95,20 @@ class SeqSelfAttention(keras.layers.Layer):
                                   initializer=self.kernel_initializer,
                                   regularizer=self.kernel_regularizer,
                                   constraint=self.kernel_constraint)
-        
+
         self.ba = self.add_weight(shape=(1,),
                                   name='{}_Add_ba'.format(self.name),
                                   initializer=self.bias_initializer,
                                   regularizer=self.bias_regularizer,
                                   constraint=self.bias_constraint)
 
-
     def call(self, inputs, mask=None, **kwargs):
-        
+
         alpha = self._emission(inputs)
 
         if self.attention_activation is not None:
             alpha = self.attention_activation(alpha)
-        
+
         # Equation 2 in the paper
         # \alpha_{r, r'} = = \text{softmax}(\alpha_{r, r'})
         alpha = K.exp(alpha - K.max(alpha, axis=-1, keepdims=True))
@@ -119,7 +117,6 @@ class SeqSelfAttention(keras.layers.Layer):
         # Equation 2 in the paper
         # \mathbf{c}_r = \sum_{r'} \alpha_{r, r'} \bar{f}_{r'}
         c_r = K.batch_dot(a, inputs)
-        
 
         if self.return_attention:
             return [c_r, a]
@@ -132,14 +129,14 @@ class SeqSelfAttention(keras.layers.Layer):
         # Equation 2 in the paper
         # \beta_{r, r'} = \tanh(\bar{f}_r^T W_\bata + \bar{f}_{r'}^T W_{\beta'} + b_\beta)
         q = K.expand_dims(K.dot(inputs, self.Wt), 2)
-        k = K.expand_dims(K.dot(inputs, self.Wx), 1)        
+        k = K.expand_dims(K.dot(inputs, self.Wx), 1)
         beta = K.tanh(q + k + self.bh)
-        
+
         # Equation 2 in paper
         # the computation inside Softmax
         # \alpha_{r, r'} = W_\alpha \beta_{r, r'} + b_\alpha
         alpha = K.reshape(K.dot(beta, self.Wa) + self.ba, (batch_size, input_len, input_len))
-        
+
         return alpha
 
     def compute_output_shape(self, input_shape):
