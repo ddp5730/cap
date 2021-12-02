@@ -14,7 +14,7 @@ Created on Thu Dec 13 10:33:32 2019
 import tensorflow as tf
 # from keras import layers
 from keras import backend as K
-from keras.layers import Layer
+from tensorflow.keras.layers import Layer
 
 
 # from SpectralNormalizationKeras import ConvSN2D
@@ -26,8 +26,8 @@ def hw_flatten(x):
 
 class SelfAttention(Layer):
     def __init__(self, filters, **kwargs):
-        self.dim_ordering = K.image_dim_ordering()
-        assert self.dim_ordering in {'tf', 'th'}, 'dim_ordering must be in {tf, th}'
+        self.dim_ordering = K.image_data_format()
+        # assert self.dim_ordering in {'tf', 'th'}, 'dim_ordering must be in {tf, th}'
         self.filters = filters
         # self.f = f
         # self.g = g

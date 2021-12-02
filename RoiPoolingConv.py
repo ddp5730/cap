@@ -1,5 +1,5 @@
 import keras.backend as K
-from keras.engine.topology import Layer
+from tensorflow.python.keras.layers import Layer
 
 if K.backend() == 'tensorflow':
     import tensorflow as tf
@@ -28,8 +28,8 @@ class RoiPoolingConv(Layer):
 
     def __init__(self, pool_size, num_rois, rois_mat, **kwargs):
 
-        self.dim_ordering = K.image_dim_ordering()
-        assert self.dim_ordering in {'tf', 'th'}, 'dim_ordering must be in {tf, th}'
+        self.dim_ordering = K.image_data_format()
+        # assert self.dim_ordering in {'tf', 'th'}, 'dim_ordering must be in {tf, th}'
 
         self.pool_size = pool_size
         self.num_rois = num_rois
@@ -38,9 +38,9 @@ class RoiPoolingConv(Layer):
         super(RoiPoolingConv, self).__init__(**kwargs)
 
     def build(self, input_shape):
-        if self.dim_ordering == 'th':
+        if self.dim_ordering == 'channels_first':  # th == channels_first
             self.nb_channels = input_shape[1]
-        elif self.dim_ordering == 'tf':
+        elif self.dim_ordering == 'channels_last':  # tf == channels_last
             self.nb_channels = input_shape[3]
 
     def compute_output_shape(self, input_shape):
@@ -81,7 +81,7 @@ class RoiPoolingConv(Layer):
             # NOTE: the RoiPooling implementation differs between theano and tensorflow due to the lack of a resize op
             # in theano. The theano implementation is much less efficient and leads to long compile times
 
-            if self.dim_ordering == 'th':
+            if self.dim_ordering == 'channels_first':  # th --> channels_first
                 for jy in range(num_pool_regions):
                     for ix in range(num_pool_regions):
                         x1 = x + ix * row_length
@@ -105,12 +105,12 @@ class RoiPoolingConv(Layer):
                         pooled_val = K.max(xm, axis=(2, 3))
                         outputs.append(pooled_val)
 
-            elif self.dim_ordering == 'tf':
+            elif self.dim_ordering == 'channels_last':  # tf --> channels_last
                 x = K.cast(x, 'int32')
                 y = K.cast(y, 'int32')
                 w = K.cast(w, 'int32')  # K.maximum(K.cast(w, 'int32'), tf.constant(1))
                 h = K.cast(h, 'int32')  # K.maximum(K.cast(h, 'int32'), tf.constant(1))
-                rs = tf.image.resize_images(img[:, y:y + h, x:x + w, :], (self.pool_size,
+                rs = tf.image.resize(img[:, y:y + h, x:x + w, :], (self.pool_size,
                                                                           self.pool_size))  # tf.cond(tf.logical_or(tf.equal(h, tf.constant(1)), tf.equal(w, tf.constant(1))), lambda: tf.constant(0.0, shape=(1,1,1)), lambda: tf.image.resize_images(img[:, y:y+h, x:x+w, :], (self.pool_size, self.pool_size)))                #if w or h is == 0 then rs should be 0
                 outputs.append(rs)
 

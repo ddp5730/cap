@@ -6,13 +6,14 @@ from keras import initializers
 from keras import regularizers
 from keras.engine import *
 from keras.layers import Dense, Conv1D, Conv2D, Conv3D, Conv2DTranspose, Embedding
-from keras.legacy import interfaces
-from keras.legacy import interfaces
+# from keras.legacy import interfaces
+# from keras.legacy import interfaces
 from keras.utils import conv_utils
 from keras.utils.generic_utils import deserialize_keras_object
 from keras.utils.generic_utils import func_dump
 from keras.utils.generic_utils import func_load
 from keras.utils.generic_utils import has_arg
+from tensorflow.keras.layers import Layer, InputSpec
 
 
 class DenseSN(Dense):

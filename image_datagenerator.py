@@ -7,9 +7,10 @@ from keras.preprocessing.image import ImageDataGenerator
 from keras.preprocessing.image import load_img, img_to_array, apply_affine_transform
 from os import listdir
 from os.path import isdir, join, isfile
+import tensorflow
 
 
-class DirectoryDataGenerator(keras.utils.Sequence):
+class DirectoryDataGenerator(tensorflow.keras.utils.Sequence):
     def __init__(self, base_directories, augmentor=False, preprocessors=None, batch_size=16, target_sizes=(224, 224),
                  nb_channels=3, shuffle=False, verbose=True):
         self.base_directories = base_directories

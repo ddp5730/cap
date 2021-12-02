@@ -1,12 +1,13 @@
 '''Imports'''
-import numpy as np
 import os
+
+import numpy as np
 from keras import layers, backend as K
 from keras.applications.xception import Xception, preprocess_input
 from keras.callbacks import CSVLogger, ModelCheckpoint
 from keras.callbacks import LearningRateScheduler
-from keras.models import Model, load_model
-from keras.optimizers import Adam, SGD, RMSprop
+from keras.models import Model
+from tensorflow.keras.optimizers import SGD
 
 '''Local Imports'''
 from custom_validate_callback import CustomCallback
@@ -131,7 +132,7 @@ x_final = SelfAttention(filters=base_channels)([x, x_f, x_g, x_h])
 
 # x_final = base_out
 
-full_img = layers.Lambda(lambda x: K.tf.image.resize_images(x, size=(ROIS_resolution, ROIS_resolution)),
+full_img = layers.Lambda(lambda x: K.tf.image.resize(x, size=(ROIS_resolution, ROIS_resolution)),
                          name='Lambda_img_1')(
     x_final)  # Use bilinear upsampling (default tensorflow image resize) to a reasonable size
 
