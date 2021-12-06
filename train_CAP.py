@@ -28,7 +28,7 @@ from se import squeeze_excite_block
 '''Variables'''
 batch_size = 8
 checkpoint_freq = 5
-dataset_dir = "PATH/TO/DATASET/Aircraft"
+dataset_dir = "/home/poppfd/data/CUB-200-2011/CUB_200_2011/dataset_dir"
 epochs = 200
 # image_size = (224, 224)
 image_size = (299, 299)

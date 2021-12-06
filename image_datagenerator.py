@@ -1,3 +1,5 @@
+from random import randrange
+
 import cv2
 import keras
 import numpy as np
@@ -90,15 +92,20 @@ class DirectoryDataGenerator(tensorflow.keras.utils.Sequence):
             np.random.shuffle(self.indexes)
 
     def random_crop(self, image, image_size):
-        if image.shape[1] > image_size:
-            sz1 = int(image.shape[1] // 2)
-            sz2 = int(image_size // 2)
-            # if random_crop:
-            diff = sz1 - sz2
-            (h, v) = (np.random.randint(-diff, diff + 1), np.random.randint(-diff, diff + 1))
-            # else:
-            # (h, v) = (0,0)
-            image = image[(sz1 - sz2 + v):(sz1 + sz2 + v), (sz1 - sz2 + h):(sz1 + sz2 + h), :]
+        # if image.shape[1] > image_size:
+        #     sz1 = int(image.shape[1] // 2)
+        #     sz2 = int(image_size // 2)
+        #     # if random_crop:
+        #     diff = sz1 - sz2
+        #     (h, v) = (np.random.randint(-diff, diff + 1), np.random.randint(-diff, diff + 1))
+        #     # else:
+        #     # (h, v) = (0,0)
+        #     if image_size % 2 == 0:
+        #         image = image[(sz1 - sz2 + v):(sz1 + sz2 + v), (sz1 - sz2 + h):(sz1 + sz2 + h), :]
+        #     else:
+        #         image = image[(sz1 - sz2 + v):(sz1 + sz2 + v+1), (sz1 - sz2 + h):(sz1 + sz2 + h+1), :]
+        # return image
+        image = tensorflow.image.random_crop(value=image, size=(image_size, image_size, image.shape[2]))
         return image
 
     def cv2_image_augmentation(self, img, theta=20, tx=10, ty=10, scale=1.):
@@ -138,7 +145,7 @@ class DirectoryDataGenerator(tensorflow.keras.utils.Sequence):
 
             if self.augmentor:
 
-                img = cv2.resize(img, (256, 256))
+                img = cv2.resize(img, (324, 324))
                 img = self.cv2_image_augmentation(img, theta=15, tx=0., ty=0., scale=0.15)
 
                 if np.random.random_sample() >= 0.5:  # horizontal flip added
@@ -155,4 +162,4 @@ class DirectoryDataGenerator(tensorflow.keras.utils.Sequence):
 
             y[i] = self.labels[indexes[i]]
 
-        return X, keras.utils.to_categorical(y, num_classes=self.nb_classes)
+        return X, keras.utils.np_utils.to_categorical(y, num_classes=self.nb_classes)
