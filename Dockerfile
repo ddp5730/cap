@@ -9,3 +9,5 @@ RUN apt-get install ffmpeg libsm6 libxext6  -y
 COPY requirements.txt /opt/requirements.txt
 WORKDIR /opt
 RUN pip3 install -r requirements.txt
+RUN pip3 install onnx_tf
+RUN pip3 install onnx2keras

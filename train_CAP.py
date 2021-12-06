@@ -1,13 +1,19 @@
 '''Imports'''
+import argparse
 import os
 
 import numpy as np
+import tensorflow
 from keras import layers, backend as K
 from keras.applications.xception import Xception, preprocess_input
 from keras.callbacks import CSVLogger, ModelCheckpoint
 from keras.callbacks import LearningRateScheduler
 from keras.models import Model
 from tensorflow.keras.optimizers import SGD
+
+import onnx
+from onnx_tf.backend import prepare
+from onnx2keras import onnx_to_keras
 
 '''Local Imports'''
 from custom_validate_callback import CustomCallback
@@ -102,24 +108,40 @@ def stackfunc(x):
     return K.stack(x, axis=1)
 
 
+argparser = argparse.ArgumentParser()
+argparser.add_argument('--onnx-model', type=str, metavar='PATH', default='',
+                       help='The path to the ONXX model to load as the model')
+args = argparser.parse_args()
+
 '''Model Constants'''
 ROIS_resolution = 42
 ROIS_grid_size = 3
 min_grid_size = 2
-pool_size = 7
+pool_size = 8
 loss_type = 'categorical_crossentropy'
 metrics = ['accuracy']
 
 '''Model Construction'''
-base_model = Xception(weights='imagenet', input_tensor=layers.Input(shape=(image_size[0], image_size[1], 3)),
-                      include_top=False)
+# TODO: Get new base model using ONXX
+if args.onnx_model == '':
+    base_model = Xception(weights='imagenet', input_tensor=layers.Input(shape=(image_size[0], image_size[1], 3)),
+                          include_top=False)
+    # last convolution layer
+    base_out = base_model.output
+    dims = base_out.shape.as_list()[1:]
+    feat_dim = dims[2] * pool_size * pool_size
+    base_channels = dims[2]
+else:
+    onnx_model = onnx.load(args.onnx_model)
+    base_model = onnx_to_keras(onnx_model, ['input.1'])
+    print(base_model.summary())
 
-# last convolution layer
-base_out = base_model.output
-
-dims = base_out.shape.as_list()[1:]
-feat_dim = dims[2] * pool_size * pool_size
-base_channels = dims[2]
+    base_out = base_model.layers[419].output  # Concatenate layer output
+    dims = base_out.shape.as_list()[1:]
+    base_out = tensorflow.reshape(base_out, [-1, dims[1], dims[2], dims[0]])
+    dims = base_out.shape.as_list()[1:]
+    feat_dim = dims[2] * pool_size * pool_size
+    base_channels = dims[2]
 
 x = base_out
 x = squeeze_excite_block(x)  # Added new
