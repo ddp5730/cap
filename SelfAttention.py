@@ -36,6 +36,13 @@ class SelfAttention(Layer):
 
         super(SelfAttention, self).__init__(**kwargs)
 
+    def get_config(self):
+        config = super().get_config()
+        config.update({
+            'filters': self.filters
+        })
+        return config
+
     def build(self, input_shape):
         # self.f = ConvSN2D(self.filters // 8, kernel_size=1, strides=1, padding='same')# [bs, h, w, c']
         # self.g = ConvSN2D(self.filters // 8, kernel_size=1, strides=1, padding='same') # [bs, h, w, c']

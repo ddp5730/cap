@@ -14,13 +14,14 @@ import tensorflow
 
 class DirectoryDataGenerator(tensorflow.keras.utils.Sequence):
     def __init__(self, base_directories, augmentor=False, preprocessors=None, batch_size=16, target_sizes=(224, 224),
-                 nb_channels=3, shuffle=False, verbose=True):
+                 nb_channels=3, shuffle=False, verbose=True, channels_first=False):
         self.base_directories = base_directories
         self.augmentor = augmentor
         self.preprocessors = preprocessors  # should be a function that can be directly called with an image
         self.batch_size = batch_size
         self.target_sizes = target_sizes
         self.shuffle = shuffle
+        self.channels_first = channels_first
 
         self.class_names = []
         files = []
@@ -133,7 +134,10 @@ class DirectoryDataGenerator(tensorflow.keras.utils.Sequence):
 
     def __data_generation(self, list_IDs_temp, indexes):
 
-        X = np.empty((self.batch_size, self.target_sizes[0], self.target_sizes[1], 3), dtype=K.floatx())
+        if self.channels_first:
+            X = np.empty((self.batch_size, 3, self.target_sizes[0], self.target_sizes[1]), dtype=K.floatx())
+        else:
+            X = np.empty((self.batch_size, self.target_sizes[0], self.target_sizes[1], 3), dtype=K.floatx())
         y = np.empty((self.batch_size), dtype=float)
 
         # Generate data
@@ -158,6 +162,8 @@ class DirectoryDataGenerator(tensorflow.keras.utils.Sequence):
             if self.preprocessors:
                 img = self.preprocessors(img)  # used for the pre-processing step of the model, e.g. VGG16 or Resnets
 
+            if self.channels_first:
+                img = tensorflow.transpose(img, perm=[2, 0, 1])
             X[i,] = img
 
             y[i] = self.labels[indexes[i]]

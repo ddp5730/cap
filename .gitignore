@@ -1,0 +1,6 @@
+Metrics/
+.idea/
+__pycache__/
+TrainedModels/
+
+results.txt

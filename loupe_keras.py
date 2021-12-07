@@ -36,6 +36,16 @@ class NetRVLAD(layers.Layer):
         self.cluster_size = cluster_size
         super(NetRVLAD, self).__init__(**kwargs)
 
+    def get_config(self):
+        config = super().get_config()
+        config.update({
+            "feature_size": self.feature_size,
+            'max_samples': self.max_samples,
+            'cluster_size': self.cluster_size,
+            'output_dim': self.output_dim
+        })
+        return config
+
     def build(self, input_shape):
         # Create a trainable weight variable for this layer.
         self.cluster_weights = self.add_weight(name='kernel_W1',

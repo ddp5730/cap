@@ -29,16 +29,31 @@ from se import squeeze_excite_block
 batch_size = 8
 checkpoint_freq = 5
 dataset_dir = "/home/poppfd/data/CUB-200-2011/CUB_200_2011/dataset_dir"
-epochs = 200
+epochs = 400
 # image_size = (224, 224)
 image_size = (299, 299)
 lstm_units = 128
 model_name = "CAP_Xception"
-nb_classes = 100
-optimizer = SGD(lr=0.0001, momentum=0.99, nesterov=True)
+nb_classes = 200
+optimizer = SGD(lr=0.001, momentum=0.99, nesterov=True)
 train_dir = "{}/train".format(dataset_dir)
 val_dir = "{}/test".format(dataset_dir)
 validation_freq = 5
+channels_first = True
+
+# batch_size = 8
+# checkpoint_freq = 5
+# dataset_dir = "/home/poppfd/data/CUB-200-2011/CUB_200_2011/dataset_dir"
+# epochs = 200
+# image_size = (224, 224)
+# lstm_units = 128
+# model_name = ""
+# nb_classes = 200
+# optimizer = SGD(lr=0.0001, momentum=0.99, nesterov=True)
+# train_dir = "{}/train".format(dataset_dir)
+# val_dir = "{}/test".format(dataset_dir)
+# validation_freq = 5
+# channels_first = False
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
@@ -119,6 +134,7 @@ ROIS_resolution = 42
 ROIS_grid_size = 3
 min_grid_size = 2
 pool_size = 8
+# pool_size = 7
 loss_type = 'categorical_crossentropy'
 metrics = ['accuracy']
 
@@ -221,12 +237,14 @@ nb_train_samples = sum([len(files) for r, d, files in os.walk(train_dir)])
 nb_val_samples = sum([len(files) for r, d, files in os.walk(val_dir)])
 
 train_dg = DirectoryDataGenerator(base_directories=[train_dir], augmentor=True, target_sizes=image_size,
-                                  preprocessors=preprocess_input, batch_size=batch_size, shuffle=True)
+                                  preprocessors=preprocess_input, batch_size=batch_size, shuffle=True,
+                                  channels_first=channels_first)
 val_dg = DirectoryDataGenerator(base_directories=[val_dir], augmentor=False, target_sizes=image_size,
-                                preprocessors=preprocess_input, batch_size=batch_size, shuffle=False)
+                                preprocessors=preprocess_input, batch_size=batch_size, shuffle=False,
+                                channels_first=channels_first)
 
 print("train images: ", nb_train_samples)
 print("val images: ", nb_val_samples)
 
-model.fit_generator(train_dg, steps_per_epoch=nb_train_samples // batch_size, epochs=epochs,
+model.fit(train_dg, steps_per_epoch=nb_train_samples // batch_size, epochs=epochs,
                     callbacks=[checkpointer, csv_logger, CustomCallback(val_dg, validation_freq, metrics_dir)])
