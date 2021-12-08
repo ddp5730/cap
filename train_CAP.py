@@ -35,7 +35,7 @@ image_size = (299, 299)
 lstm_units = 128
 model_name = "CAP_Xception"
 nb_classes = 200
-optimizer = SGD(lr=0.001, momentum=0.99, nesterov=True)
+optimizer = SGD(lr=0.0001, momentum=0.99, nesterov=True)
 train_dir = "{}/train".format(dataset_dir)
 val_dir = "{}/test".format(dataset_dir)
 validation_freq = 5
@@ -155,7 +155,7 @@ else:
 
     base_out = base_model.layers[419].output  # Concatenate layer output
     dims = base_out.shape.as_list()[1:]
-    base_out = tensorflow.reshape(base_out, [-1, dims[1], dims[2], dims[0]])
+    base_out = tensorflow.transpose(base_out, perm=[0, 2, 3, 1])
     dims = base_out.shape.as_list()[1:]
     feat_dim = dims[2] * pool_size * pool_size
     base_channels = dims[2]
